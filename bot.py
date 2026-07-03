@@ -7,7 +7,7 @@ import re
 api_id = int(os.environ.get('API_ID'))
 api_hash = os.environ.get('API_HASH')
 session_str = os.environ.get('SESSION_STRING')
-target_id = 'TARGET_ID' # আপনার কাঙ্ক্ষিত আইডি (যেমন: @username বা আইডি নাম্বার)
+target_id = os.environ.get('TARGET_ID') # আপনার কাঙ্ক্ষিত আইডি (যেমন: @username বা আইডি নাম্বার)
 
 client = TelegramClient(StringSession(session_str), api_id, api_hash)
 
