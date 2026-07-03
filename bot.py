@@ -6,7 +6,7 @@ from telethon.sessions import StringSession
 api_id = int(os.environ.get('API_ID'))
 api_hash = os.environ.get('API_HASH')
 session_str = os.environ.get('SESSION_STRING')
-target_id = os.environ.get('TARGET_ID')
+target_name = os.environ.get('TARGET_NAME') # এখানে আপনার টার্গেট ইউজারনেম বা চ্যাটের নাম লিখুন
 
 client = TelegramClient(StringSession(session_str), api_id, api_hash)
 
@@ -14,19 +14,17 @@ client = TelegramClient(StringSession(session_str), api_id, api_hash)
 async def handler(event):
     chat = await event.get_chat()
     
-    # শুধুমাত্র নির্দিষ্ট বট থেকে আসা মেসেজ চেক করা
-    if getattr(chat, 'username', None) == 'Testapifefrrhbot':
+    # বট থেকে মেসেজ চেক করা
+    if getattr(chat, 'username', None) == 'Testalifxfyr74_bot':
         msg = event.raw_text
-        
-        # ডেভেলপার নাম পরিবর্তন করার লজিক
-        # পুরাতন টেক্সট: @Axit_dev & @MeNoFace
-        # নতুন টেক্সট: @Anonymous_XZ & @WW_Owner
-        
         new_msg = msg.replace('@Axit_dev & @MeNoFace', '@Anonymous_XZ & @WW_Owner')
         
-        # এডিট করে ফরোয়ার্ড করা
-        await client.send_message(target_id, new_msg)
-        print("মেসেজ এডিট করে ফরোয়ার্ড করা হয়েছে।")
+        # সব চ্যাট স্ক্যান করে টার্গেট খুঁজে নেওয়া
+        async for dialog in client.iter_dialogs():
+            if dialog.name == target_name or dialog.entity.username == target_name.replace('@', ''):
+                await client.send_message(dialog.id, new_msg)
+                print(f"সফলভাবে {target_name}-এ মেসেজ পাঠানো হয়েছে।")
+                return
 
 print("Bot is running...")
 client.start()
