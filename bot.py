@@ -4,10 +4,10 @@ import os
 import re
 
 # এনভায়রনমেন্ট ভেরিয়েবল থেকে কনফিগারেশন
-api_id = int(os.environ.get('35062802'))
-api_hash = os.environ.get('8ea88b1b1320503d5b343edaf7969a11')
+api_id = int(os.environ.get('API_ID'))
+api_hash = os.environ.get('API_HASH')
 session_str = os.environ.get('SESSION_STRING')
-target_id = '6147968753' # আপনার কাঙ্ক্ষিত আইডি (যেমন: @username বা আইডি নাম্বার)
+target_id = 'TARGET_ID' # আপনার কাঙ্ক্ষিত আইডি (যেমন: @username বা আইডি নাম্বার)
 
 client = TelegramClient(StringSession(session_str), api_id, api_hash)
 
