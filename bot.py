@@ -15,7 +15,7 @@ async def handler(event):
     chat = await event.get_chat()
     
     # শুধুমাত্র নির্দিষ্ট বট থেকে আসা মেসেজ চেক করা
-    if getattr(chat, 'username', None) == 'Testalifxfyr74_bot':
+    if getattr(chat, 'username', None) == 'Testapifefrrhbot':
         msg = event.raw_text
         
         # ডেভেলপার নাম পরিবর্তন করার লজিক
