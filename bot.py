@@ -15,7 +15,7 @@ async def handler(event):
     chat = await event.get_chat()
     
     # বট থেকে মেসেজ চেক করা
-    if getattr(chat, 'username', None) == 'Testalifxfyr74_bot':
+    if getattr(chat, 'username', None) == '@Testapifefrrhbot':
         msg = event.raw_text
         new_msg = msg.replace('@Axit_dev & @MeNoFace', '@Anonymous_XZ & @WW_Owner')
         
