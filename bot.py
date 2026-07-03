@@ -1,64 +1,55 @@
 import os
-import asyncio
 import re
+import asyncio
 from telethon import TelegramClient, events
-from telethon.sessions import StringSession
+from telethon.errors import FloodWaitError
 
 # কনফিগারেশন
 api_id = int(os.environ.get('API_ID'))
 api_hash = os.environ.get('API_HASH')
 session_str = os.environ.get('SESSION_STRING')
-target_id = int(os.environ.get('TARGET_ID'))
-source_bot = 'Testapifefrrhbot'  # সোর্স বট
+
+# target_id .env থেকে string হিসেবে আসে
+# যদি এটা numeric chat id হয় (যেমন -100123456789), int এ কনভার্ট করা দরকার
+raw_target = os.environ.get('TARGET_ID')
+try:
+    target_id = int(raw_target)
+except (TypeError, ValueError):
+    target_id = raw_target  # username হলে string-ই থাকবে (@somechannel)
 
 client = TelegramClient(StringSession(session_str), api_id, api_hash)
 
-# প্রসেস করা মেসেজের আইডি ট্র্যাক করুন (ডুপ্লিকেট এড়াতে)
-processed_ids = set()
+SOURCE_BOT_USERNAME = 'Testapifefrrhbot'
 
 @client.on(events.NewMessage(incoming=True))
 async def handler(event):
-    # নিজের মেসেজ ইগনোর
-    if event.out:
-        return
-    
-    # ডুপ্লিকেট চেক
-    if event.id in processed_ids:
-        return
-    processed_ids.add(event.id)
-    
-    # মেমরি লিমিট (শেষ ১০০০টি রাখা)
-    if len(processed_ids) > 1000:
-        processed_ids.clear()
-    
     chat = await event.get_chat()
-    
-    # সোর্স বট চেক
-    if getattr(chat, 'username', None) == source_bot:
+
+    # শুধুমাত্র নির্দিষ্ট বট থেকে আসা মেসেজ চেক করা (প্রাইভেট চ্যাট ধরে নিয়ে)
+    if getattr(chat, 'username', None) == SOURCE_BOT_USERNAME:
         msg = event.raw_text
-        
-        # রিপ্লেসমেন্ট
-        new_msg = msg.replace('@Axit_dev & @MeNoFace', '@Anonymous_XZ & @WW_Owner')
-        
-        # অতিরিক্ত: 'Body:' অংশ এক্সট্রাক্ট (যদি প্রয়োজন)
-        body_match = re.search(r'Body:\s*\n(.*?)\n', msg, re.DOTALL)
-        if body_match:
-            new_msg = body_match.group(1).strip()
-        
-        # পাঠান
-        if new_msg and new_msg != msg:
-            try:
-                await client.send_message(target_id, new_msg)
-                print(f"✅ [{event.date}] মেসেজ ফরওয়ার্ড: {new_msg[:40]}...")
-            except Exception as e:
-                print(f"❌ এরর: {e}")
+
+        # ডেভেলপার নাম পরিবর্তন (স্পেস/লাইনব্রেক ভেরিয়েশন হ্যান্ডেল করতে regex)
+        new_msg = re.sub(
+            r'@Axit_dev\s*&\s*@MeNoFace',
+            '@Anonymous_XZ & @WW_Owner',
+            msg
+        )
+
+        try:
+            await client.send_message(target_id, new_msg)
+            print("মেসেজ এডিট করে ফরোয়ার্ড করা হয়েছে।")
+        except FloodWaitError as e:
+            print(f"FloodWait: {e.seconds} সেকেন্ড অপেক্ষা করতে হবে।")
+            await asyncio.sleep(e.seconds)
+        except Exception as e:
+            print(f"এরর হয়েছে: {e}")
 
 async def main():
+    print("Bot is running...")
     await client.start()
-    me = await client.get_me()
-    print(f"✅ {me.first_name} হিসেবে লগইন সফল!")
-    print("🤖 বট চালু আছে, মেসেজের জন্য অপেক্ষা করছে...")
     await client.run_until_disconnected()
 
-if __name__ == "__main__":
-    asyncio.run(main())
+if __name__ == '__main__':
+    with client:
+        client.loop.run_until_complete(main())
